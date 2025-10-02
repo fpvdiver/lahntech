@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="pt-BR" data-profile-id="PROF-1234">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Perfil do Profissional — Lahntech AI</title>
+
+  <!-- fontes e css globais (iguais ao site) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css" />
+
+  <style>
+    /* ===== PERFIL — ajustes seguindo o kit Evonic ===== */
+    .page{padding:34px 0 88px}
+    .grid-profile{display:grid;grid-template-columns:1.1fr .9fr;gap:24px}
+    @media (max-width:1024px){.grid-profile{grid-template-columns:1fr}}
+
+    .p-card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+    .p-head{display:grid;grid-template-columns:158px 1fr;gap:20px;align-items:center}
+    .avatar{width:158px;height:158px;border-radius:18px;overflow:hidden;border:1px solid #1a2b45;background:#0a1221}
+    .avatar img{width:100%;height:100%;object-fit:cover}
+
+    .name-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .verified{display:inline-flex;gap:6px;align-items:center;background:#0f1f36;border:1px solid #24406a;color:#cfe6ff;
+      padding:6px 10px;border-radius:999px;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+    .rating{display:flex;align-items:center;gap:8px;color:#ffd34d;font-weight:800}
+    .rating small{color:#a9b8d4}
+    .meta{display:flex;gap:12px;flex-wrap:wrap;color:#a9b8d4}
+    .meta span{display:inline-flex;gap:6px;align-items:center}
+
+    .chips-wrap{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .chip{background:#0d1a2e;border:1px solid #1a2b45;padding:8px 12px;border-radius:999px;color:#cfe6ff;font-weight:700;font-size:12px}
+
+    .cta-col{display:grid;gap:12px;margin-top:14px}
+    .btn.whatsapp{background:linear-gradient(90deg,#25D366,#5CFFA1);color:#021b0d}
+    .btn.block{display:block;text-align:center}
+
+    .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+    .kpi{background:#0f1628;border:1px solid #1a2844;border-radius:16px;padding:14px;text-align:center}
+    .kpi .v{font:800 22px/1 "Syne"} .kpi .l{color:#a9b8d4}
+
+    /* Tabs */
+    .tabs{margin-top:18px}
+    .tab-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .tab-nav button{background:#0f1628;border:1px solid #1a2844;color:#cfe6ff;border-radius:999px;padding:10px 14px;font-weight:800}
+    .tab-nav button.is-active{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#001018;border:none}
+    .tab{display:none}.tab.is-active{display:block}
+
+    /* Services list */
+    .services{display:grid;gap:12px}
+    .svc{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#0f1628;border:1px solid #1a2844;border-radius:14px;padding:14px}
+    .svc h4{margin:0;font-size:16px}
+    .svc .muted{margin:0}
+    .price{font:800 18px/1 "Syne"} .dur{color:#bcd2ea;font-weight:700}
+    .svc .actions{display:flex;gap:8px;align-items:center}
+    .svc .btn{padding:9px 12px}
+    .svc .btn.ghost{background:#0c1426;border:1px solid #1a2b45;color:#cfe6ff}
+
+    /* Testimonials */
+    .reviews{display:grid;gap:12px}
+    .rev{background:#0f1628;border:1px solid #1a2844;border-radius:14px;padding:14px}
+    .rev .head{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .rev .stars{color:#ffd34d;letter-spacing:1px}
+    .rev .who{color:#cfe6ff;font-weight:800}
+
+    /* About */
+    .about p{margin:.4em 0}
+    .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .badge{background:#0c1526;border:1px solid #1a2b45;border-radius:999px;padding:6px 10px;color:#cfe6ff;font-weight:800;font-size:12px}
+
+    /* Right column: schedule + trust */
+    .aside{display:grid;gap:20px}
+    .schedule{background:#0f1628;border:1px solid #1a2844;border-radius:18px;padding:16px}
+    .slot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .slot{background:#0c1426;border:1px solid #1a2b45;border-radius:10px;padding:10px;text-align:center;cursor:pointer;font-weight:800}
+    .slot:hover{outline:2px solid rgba(0,214,255,.3)}
+    .legend{display:flex;gap:10px;color:#a9b8d4;font-size:13px;margin-top:10px}
+    .dot{width:10px;height:10px;border-radius:50%}
+    .ok{background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+    .busy{background:#ff6b6b}
+
+    .trust{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .trust .t{background:#0c1526;border:1px solid #1a2b45;border-radius:12px;padding:12px;text-align:center}
+    .trust .t .v{font:800 18px/1 "Syne"}
+
+    /* seção “outros profissionais” (diferencial) */
+    .more-pros{margin-top:24px}
+    .more-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .mini{background:#0f1628;border:1px solid #1a2844;border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center}
+    .mini img{width:44px;height:44px;border-radius:10px;object-fit:cover}
+    @media (max-width:1024px){.more-grid{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Pular para o conteúdo</a>
+
+  <!-- header idêntico ao site -->
+  <header class="site-nav">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html"><span class="glyph"></span><strong>Bravius<span class="ai">AI</span></strong></a>
+      <nav class="main-nav"><ul class="menu">
+        <li><a href="index.html#services">Services</a></li>
+        <li><a href="index.html#portfolio">Projects</a></li>
+        <li><a href="index.html#pricing">Pricing</a></li>
+        <li><a href="index.html#blog">Blog</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul></nav>
+      <div class="actions">
+        <a class="btn small" href="#schedule">Agendar</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="page">
+    <div class="container grid-profile">
+      <!-- COL ESQUERDA -->
+      <section class="p-card reveal">
+        <div class="p-head">
+          <div class="avatar">
+            <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=800&auto=format&fit=crop" alt="Foto do profissional">
+          </div>
+          <div>
+            <div class="name-row">
+              <h2 style="margin:0">Allan Augusto</h2>
+              <span class="verified">✓ Verified</span>
+              <span class="rating">★★★★☆ <small>(4.9)</small></span>
+            </div>
+            <div class="meta">
+              <span>FullStack</span><span>•</span>
+              <span>PT / EN</span><span>•</span>
+              <span>Resposta média &lt; 2h</span><span>•</span>
+              <span>Status: <strong style="color:#5cf0ff">Disponível</strong></span>
+            </div>
+            <div class="chips-wrap">
+              <span class="chip">LLMs</span><span class="chip">MLOps</span><span class="chip">RAG</span>
+              <span class="chip">Vision</span><span class="chip">Data Eng</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi"><div class="v">5+ anos</div><div class="l">Experiência</div></div>
+          <div class="kpi"><div class="v">150+</div><div class="l">Projetos</div></div>
+          <div class="kpi"><div class="v">NPS 92</div><div class="l">Satisfação</div></div>
+        </div>
+
+        <div class="cta-col">
+          <a class="btn whatsapp block" href="https://wa.me/5500000000000?text=Quero%20agendar%20com%20Sami%20Rahman" target="_blank" rel="noopener">Agendar no WhatsApp</a>
+          <a class="btn block" href="#schedule">Solicitar proposta</a>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <div class="tab-nav">
+            <button class="is-active" data-tab="services">Serviços</button>
+            <button data-tab="about">Sobre</button>
+            <button data-tab="reviews">Avaliações</button>
+          </div>
+
+          <div class="tab is-active" id="tab-services">
+            <div class="services">
+              <div class="svc">
+                <div>
+                  <h4>Consultoria em IA</h4>
+                  <p class="muted">Descoberta, arquitetura e plano de ação.</p>
+                </div>
+                <div class="actions">
+                  <div class="dur">60 min</div>
+                  <div class="price">$129</div>
+                  <a class="btn" href="#schedule">Agendar</a>
+                  <button class="btn ghost">Detalhes</button>
+                </div>
+              </div>
+              <div class="svc">
+                <div>
+                  <h4>Implementação de RAG</h4>
+                  <p class="muted">Base de conhecimento + search + guardrails.</p>
+                </div>
+                <div class="actions">
+                  <div class="dur">Projeto</div><div class="price">$ —</div>
+                  <a class="btn" href="#schedule">Briefing</a>
+                  <button class="btn ghost">Escopo</button>
+                </div>
+              </div>
+              <div class="svc">
+                <div>
+                  <h4>MLOps / Observabilidade</h4>
+                  <p class="muted">Pipelines, monitoração e rollout seguro.</p>
+                </div>
+                <div class="actions">
+                  <div class="dur">Projeto</div><div class="price">$ —</div>
+                  <a class="btn" href="#schedule">Briefing</a>
+                  <button class="btn ghost">Escopo</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab" id="tab-about">
+            <div class="about">
+              <p>Engenheiro de IA focado em produtos com métricas e confiabilidade. Experiência em LLMs, visão computacional e dados em nuvem.</p>
+              <div class="badges">
+                <span class="badge">AWS Certified</span>
+                <span class="badge">GCP Data</span>
+                <span class="badge">OWASP</span>
+                <span class="badge">Kubernetes</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab" id="tab-reviews">
+            <div class="reviews">
+              <div class="rev">
+                <div class="head">
+                  <div class="who">Marina F. • PM</div>
+                  <div class="stars">★★★★★</div>
+                </div>
+                <p>“Virada em 4 semanas com observabilidade. Recomendo.”</p>
+              </div>
+              <div class="rev">
+                <div class="head">
+                  <div class="who">Gustavo A. • CTO</div>
+                  <div class="stars">★★★★★</div>
+                </div>
+                <p>“API estável e documentação clara. Excelente comunicação.”</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COL DIREITA -->
+      <aside class="aside">
+        <section id="schedule" class="schedule p-card reveal">
+          <h3 style="margin-top:0">Agenda rápida</h3>
+          <p class="muted">Escolha um horário nos próximos dias</p>
+          <div class="slot-grid" data-slots></div>
+          <div class="legend">
+            <span class="dot ok"></span> Disponível
+            <span class="dot busy" style="margin-left:14px"></span> Ocupado
+          </div>
+          <a class="btn block" style="margin-top:12px" href="https://wa.me/5500000000000?text=Quero%20agendar%20com%20Sami%20Rahman">Confirmar pelo WhatsApp</a>
+        </section>
+
+        <section class="p-card reveal">
+          <h3 style="margin-top:0">Confiabilidade</h3>
+          <div class="trust">
+            <div class="t"><div class="v">3 anos</div><div class="l">na BraviusAI</div></div>
+            <div class="t"><div class="v">280+</div><div class="l">clientes</div></div>
+            <div class="t"><div class="v">4.8/5</div><div class="l">avaliações</div></div>
+          </div>
+        </section>
+
+        <section class="p-card reveal">
+          <h3 style="margin-top:0">Compartilhar perfil</h3>
+          <p class="muted">Envie o link para alguém avaliar e aprovar.</p>
+          <button class="btn block" data-share>Copiar link</button>
+        </section>
+
+        <!-- Diferencial: outros profissionais (cross-sell) -->
+        <section class="p-card reveal more-pros">
+          <h3 style="margin-top:0">Outros profissionais</h3>
+          <div class="more-grid">
+            <a class="mini" href="profiles.html?ref=2">
+              <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop" alt="">
+              <div><strong>Julia P.</strong><div class="muted">Data Scientist</div></div>
+            </a>
+            <a class="mini" href="profiles.html?ref=3">
+              <img src="https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=600&auto=format&fit=crop" alt="">
+              <div><strong>Marcus V.</strong><div class="muted">ML Engineer</div></div>
+            </a>
+            <a class="mini" href="profiles.html?ref=4">
+              <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=600&auto=format&fit=crop" alt="">
+              <div><strong>Renata S.</strong><div class="muted">GenAI Designer</div></div>
+            </a>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <script src="assets/app.js"></script>
+  <script>
+    // ===== Tabs
+    document.querySelectorAll('.tab-nav button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('.tab-nav button').forEach(b=>b.classList.remove('is-active'));
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        document.getElementById('tab-'+btn.dataset.tab).classList.add('is-active');
+      });
+    });
+
+    // ===== Slots simulados (plugável ao seu backend depois)
+    (function(){
+      const grid = document.querySelector('[data-slots]');
+      if(!grid) return;
+      const hours = ['09:00','10:00','11:00','14:00','15:00','16:00','17:00','18:00','19:00'];
+      const busy = new Set(['11:00','16:00','18:00']); // exemplo
+      hours.forEach(h=>{
+        const el = document.createElement('button');
+        el.className = 'slot';
+        el.textContent = h;
+        if(busy.has(h)){ el.style.opacity=.5; el.style.pointerEvents='none'; el.title='Ocupado';}
+        grid.appendChild(el);
+      });
+    })();
+
+    // ===== Copiar link
+    (function(){
+      const btn = document.querySelector('[data-share]');
+      if(!btn) return;
+      btn.addEventListener('click', async ()=>{
+        const url = location.href;
+        try{ await navigator.clipboard.writeText(url); btn.textContent='Link copiado!'; setTimeout(()=>btn.textContent='Copiar link',1600); }
+        catch{ alert(url); }
+      });
+    })();
+  </script>
+</body>
+</html>
