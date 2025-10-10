@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CRM de Chamados • Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root{
+      --bg:#0b0c0e; --panel:#141416; --panel-2:#101113; --line:#1f232b;
+      --text:#f5f6f9; --muted:#a7aab3; --gold:#d3a85b; --accent:#6f4ef6;
+      --ok:#16a34a; --warn:#f59e0b; --danger:#ef4444; --chip:#1b1e26;
+      --shadow:0 22px 45px rgba(0,0,0,.35); --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font:14.5px/1.55 Inter,system-ui,Segoe UI,Roboto,Ubuntu,sans-serif;}
+
+    /* Layout com sidebar fixa (padrão que você aprovou) */
+    .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+    aside{position:sticky;top:0;align-self:start;height:100vh;background:linear-gradient(180deg,#0d0e12,#0b0c0e);border-right:1px solid var(--line);padding:24px}
+    .logo{display:flex;align-items:center;gap:10px;font-weight:700}
+    .logo i{width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,var(--gold),#8d6c2e);box-shadow:0 8px 18px rgba(211,168,91,.25)}
+    nav{margin-top:28px;display:flex;flex-direction:column;gap:6px}
+    nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;color:var(--muted);text-decoration:none}
+    nav a.active, nav a:hover{background:rgba(255,255,255,.04);color:var(--text)}
+    .bottom{position:absolute;left:24px;right:24px;bottom:24px;border-top:1px dashed var(--line);padding-top:16px;color:var(--muted)}
+
+    main{padding:28px}
+    .container{max-width:1400px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+
+    .toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+    .toolbar .group{display:flex;gap:8px;align-items:center;background:var(--panel-2);border:1px solid var(--line);padding:10px;border-radius:14px}
+    .toolbar select,.toolbar input[type="search"],.toolbar input[type="date"]{background:#0f1115;border:1px solid var(--line);border-radius:10px;color:var(--text);padding:8px 10px}
+    .btn{background:linear-gradient(135deg,var(--accent),#9b8cff);border:none;border-radius:12px;color:white;padding:10px 14px;font-weight:600;cursor:pointer;box-shadow:0 10px 22px rgba(111,78,246,.25)}
+    .btn.secondary{background:#1a1d25;border:1px solid var(--line);box-shadow:none}
+
+    .grid{display:grid;gap:14px}
+    .grid.metrics{grid-template-columns:repeat(6,minmax(0,1fr))}
+    @media (max-width:1200px){.grid.metrics{grid-template-columns:repeat(3,1fr)}}
+    @media (max-width:720px){.layout{grid-template-columns:1fr} aside{display:none} .grid.metrics{grid-template-columns:1fr 1fr}}
+
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .metric{padding:16px}
+    .metric .label{color:var(--muted);font-size:12px}
+    .metric .value{font-size:22px;font-weight:700}
+    .metric .delta{font-size:12px}
+
+    .panel{padding:18px}
+    .panel h3{margin:0 0 10px 0;font-size:15px}
+
+    .charts{display:grid;grid-template-columns:2fr 2fr 1.5fr;gap:14px}
+    @media (max-width:1200px){.charts{grid-template-columns:1fr}}
+    .chart{position:relative;height:280px}
+    @media (max-width:1200px){.chart{height:260px}}
+    canvas{display:block}
+    @media (max-width:1200px){.charts{grid-template-columns:1fr}}
+
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid var(--line)}
+    th{color:var(--muted);text-align:left;font-weight:600}
+    tbody tr:hover{background:rgba(255,255,255,.02)}
+
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{background:var(--chip);color:var(--muted);border:1px solid var(--line);padding:6px 10px;border-radius:999px;font-size:12px}
+
+    .footer{color:var(--muted);font-size:12px;display:flex;justify-content:space-between;align-items:center}
+    .kbd{border:1px solid var(--line);background:#12131a;border-radius:6px;padding:2px 6px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="logo"><i></i> CRM de Chamados</div>
+      <nav>
+        <a class="active" href="#">Início</a>
+        <a href="#">Relatórios</a>
+        <a href="#">Equipes</a>
+        <a href="#">Foruns</a>
+        <a href="#">Escalonamentos</a>
+        <a href="#">Configurações</a>
+      </nav>
+      <div class="bottom">Pressione <span class="kbd">I</span> para importar dados</div>
+    </aside>
+
+    <main>
+      <div class="container">
+        <div class="toolbar">
+          <div class="group">
+            <input id="file" type="file" accept=".csv,.tsv,.txt" />
+            <button class="btn" id="btnSample">Carregar Exemplo</button>
+            <button class="btn secondary" id="btnPaste">Colar Tabela</button>
+          </div>
+          <div class="group">
+            <label>Período</label>
+            <input type="date" id="from" />
+            <span>–</span>
+            <input type="date" id="to" />
+          </div>
+          <div class="group">
+            <select id="forumFilter"><option value="">Todos os fóruns</option></select>
+            <select id="analystFilter"><option value="">Todos os analistas</option></select>
+            <select id="statusFilter"><option value="">Todos os status</option><option>FECHADO</option><option>ESCALONADO</option></select>
+            <input type="search" id="q" placeholder="Buscar (chamado, anotações, tratativa)" />
+          </div>
+          <div class="group">
+            <button class="btn" id="btnExport">Exportar CSV</button>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="grid metrics" id="metrics"></div>
+
+        <!-- Gráficos -->
+        <div class="charts">
+          <div class="card panel"><h3>Chamados por Fórum</h3><div class="chart"><canvas id="chartByForum"></canvas></div></div>
+          <div class="card panel"><h3>Chamados por Analista</h3><div class="chart"><canvas id="chartByAnalyst"></canvas></div></div>
+          <div class="card panel"><h3>Distribuição por Hora</h3><div class="chart"><canvas id="chartByHour"></canvas></div></div>
+        </div>
+
+        <!-- Rankings -->
+        <div class="grid" style="grid-template-columns:1.2fr 1fr 1fr;gap:14px">
+          <div class="card panel">
+            <h3>Rankings Gerais</h3>
+            <div class="chips" id="chipsGeneral"></div>
+          </div>
+          <div class="card panel">
+            <h3>Top por Período</h3>
+            <div class="chips" id="chipsPeriod"></div>
+          </div>
+          <div class="card panel">
+            <h3>Outliers (picos & vales)</h3>
+            <div class="chips" id="chipsOutliers"></div>
+          </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="card panel">
+          <h3>Chamados</h3>
+          <table id="tbl">
+            <thead>
+              <tr>
+                <th>CHAMADO</th><th>FÓRUM</th><th>ANALISTA</th><th>STATUS</th><th>TRATATIVA</th><th>DATA/HORA CRIAÇÃO</th><th>ANOTAÇÕES</th><th>REVISÃO LÍDER</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="footer">
+          <div>Hotkeys: <span class="kbd">I</span> importar • <span class="kbd">/</span> buscar • <span class="kbd">Esc</span> limpar filtros</div>
+          <div>Feito para análise rápida do Senior</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ---------- Util ----------
+    const $ = (s, el=document) => el.querySelector(s);
+    const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+    const fmt = (n) => n.toLocaleString('pt-BR');
+
+    // Parse de data/hora no formato "DD/MM[(/YYYY)] - HH:MM" ou "DD/MM/YYYY HH:MM"
+    function parseWhen(raw){
+      if(!raw) return null;
+      raw = String(raw).trim().replaceAll("—","-").replaceAll("–","-");
+      const nowY = new Date().getFullYear();
+      let d=null;
+      // Ex.: 09/10 - 15:12
+      let m = raw.match(/^(\d{2})\/(\d{2})(?:\/(\d{2,4}))?\s*[- ]\s*(\d{2}):(\d{2})/);
+      if(m){
+        const [_, dd, MM, yyyy, hh, mm] = m;
+        const Y = yyyy ? (yyyy.length===2? (2000+parseInt(yyyy)):parseInt(yyyy)) : nowY;
+        d = new Date(Y, parseInt(MM)-1, parseInt(dd), parseInt(hh), parseInt(mm));
+        return d;
+      }
+      // Ex.: 09/10/2025 16:25
+      m = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+      if(m){
+        const [_, dd, MM, yyyy, hh, mm] = m;
+        d = new Date(parseInt(yyyy), parseInt(MM)-1, parseInt(dd), parseInt(hh), parseInt(mm));
+        return d;
+      }
+      return null;
+    }
+
+    // CSV/TSV simples
+    function parseTable(txt){
+      const rows = txt.trim().split(/\r?\n/).filter(r=>r.trim());
+      // Detectar separador por frequência: ; \t ou múltiplos espaços
+      const seps = ['\t',';','|',','];
+      let bestSep='\t', bestScore=0;
+      for(const s of seps){
+        const score = rows.slice(0,8).map(r=>r.split(s).length).reduce((a,b)=>a+b,0);
+        if(score>bestScore){bestScore=score;bestSep=s}
+      }
+      const head = rows[0].split(bestSep).map(h=>h.trim().toUpperCase());
+      const idx = (name) => head.findIndex(h=>h.includes(name));
+      const I = {
+        chamado: idx('CHAMADO'), forum: idx('FORUM'), analista: idx('ANALISTA'), status: idx('STATUS'),
+        tratativa: idx('TRATATIVA'), quando: idx('DATA'), anot: idx('ANOTA'), revisao: idx('REVIS')
+      };
+      const data = rows.slice(1).map(r=>{
+        const c = r.split(bestSep);
+        return {
+          chamado: c[I.chamado]?.trim(),
+          forum: (c[I.forum]||'').trim(),
+          analista: (c[I.analista]||'').trim(),
+          status: (c[I.status]||'').trim().toUpperCase(),
+          tratativa: (c[I.tratativa]||'').trim(),
+          quandoRaw: (c[I.quando]||'').trim(),
+          quando: parseWhen(c[I.quando]),
+          anot: (c[I.anot]||'').trim(),
+          revisao: (c[I.revisao]||'').trim(),
+        }
+      }).filter(x=>x.chamado);
+      return data;
+    }
+
+    function groupCount(arr, key){
+      const m = new Map();
+      for(const x of arr){
+        const k = typeof key==='function'? key(x) : x[key];
+        if(k==null) continue;
+        m.set(k, (m.get(k)||0)+1);
+      }
+      return [...m.entries()].sort((a,b)=>b[1]-a[1]);
+    }
+
+    function inRange(d, from, to){
+      if(!d) return false;
+      if(from && d < from) return false;
+      if(to && d > to) return false;
+      return true;
+    }
+
+    // Estado
+    let RAW=[], DATA=[];
+    let charts={};
+
+    function refreshFilters(){
+      const forums = [...new Set(DATA.map(d=>d.forum).filter(Boolean))].sort();
+      const analysts = [...new Set(DATA.map(d=>d.analista).filter(Boolean))].sort();
+      $('#forumFilter').innerHTML = '<option value="">Todos os fóruns</option>' + forums.map(f=>`<option>${f}</option>`).join('');
+      $('#analystFilter').innerHTML = '<option value="">Todos os analistas</option>' + analysts.map(f=>`<option>${f}</option>`).join('');
+    }
+
+    function filterData(){
+      const q = $('#q').value.toLowerCase().trim();
+      const forum = $('#forumFilter').value;
+      const analyst = $('#analystFilter').value;
+      const status = $('#statusFilter').value;
+      const from = $('#from').value? new Date($('#from').value+'T00:00:00') : null;
+      const to = $('#to').value? new Date($('#to').value+'T23:59:59') : null;
+      return RAW.filter(r=>{
+        if(r.quando && !inRange(r.quando, from, to)) return false;
+        if(forum && r.forum!==forum) return false;
+        if(analyst && r.analista!==analyst) return false;
+        if(status && r.status!==status) return false;
+        if(!q) return true;
+        const blob = (r.chamado+' '+r.forum+' '+r.analista+' '+r.status+' '+r.tratativa+' '+r.anot+' '+r.revisao).toLowerCase();
+        return blob.includes(q);
+      });
+    }
+
+    function renderTable(rows){
+      const tbody = $('#tbl tbody');
+      tbody.innerHTML = rows.map(r=>{
+        const dt = r.quando? r.quando.toLocaleString('pt-BR') : r.quandoRaw||'';
+        return `<tr>
+          <td>${r.chamado||''}</td>
+          <td>${r.forum||''}</td>
+          <td>${r.analista||''}</td>
+          <td><span class="chip">${r.status||''}</span></td>
+          <td>${r.tratativa||''}</td>
+          <td>${dt}</td>
+          <td>${r.anot||''}</td>
+          <td>${r.revisao||''}</td>
+        </tr>`
+      }).join('');
+    }
+
+    function topOf(groups){
+      return groups.length? `${groups[0][0]} <b>(${fmt(groups[0][1])})</b>` : '—';
+    }
+
+    function renderKPIs(rows){
+      const total = rows.length;
+      const closed = rows.filter(r=>r.status==='FECHADO').length;
+      const escal = rows.filter(r=>r.status==='ESCALONADO').length;
+      const byForum = groupCount(rows,'forum');
+      const byAnalyst = groupCount(rows,'analista');
+      const byDay = groupCount(rows, r=> r.quando? r.quando.toISOString().slice(0,10): null);
+      const byHour = groupCount(rows, r=> r.quando? r.quando.getHours(): null);
+
+      const cards = [
+        {label:'Chamados', value: total},
+        {label:'Fechados', value: closed},
+        {label:'Escalonados', value: escal},
+        {label:'Fórum líder', value: topOf(byForum)},
+        {label:'Analista líder', value: topOf(byAnalyst)},
+        {label:'Horário de pico', value: topOf(byHour.map(([h,n])=>[String(h).padStart(2,'0')+':00',n]))},
+      ];
+      $('#metrics').innerHTML = cards.map(c=>
+        `<div class="card metric"><div class="label">${c.label}</div><div class="value">${typeof c.value==='number'? fmt(c.value): c.value}</div></div>`
+      ).join('');
+
+      // Chips gerais
+      $('#chipsGeneral').innerHTML = [
+        `Fórum com mais chamados: <b>${topOf(byForum)}</b>`,
+        `Técnico que mais atendeu: <b>${topOf(byAnalyst)}</b>`,
+        `Dia mais trabalhado: <b>${topOf(byDay)}</b>`,
+        `Horário com mais chamados: <b>${topOf(byHour.map(([h,n])=>[String(h).padStart(2,'0')+':00',n]))}</b>`
+      ].map(t=>`<span class="chip">${t}</span>`).join('');
+
+      // Chips por período (dia/semana/mês)
+      const fmtKey = (d,mode)=>{
+        if(!d) return '—';
+        if(mode==='day') return d.toISOString().slice(0,10);
+        if(mode==='week'){
+          const dt = new Date(d); const day = (dt.getDay()+6)%7; // ISO week (Mon=0)
+          dt.setDate(dt.getDate()-day);
+          return dt.toISOString().slice(0,10)+' (semana)';
+        }
+        if(mode==='month') return `${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+      }
+      function topBy(mode){
+        const groups = new Map();
+        for(const r of rows){
+          if(!r.quando) continue;
+          let key = fmtKey(r.quando,mode);
+          const perAnalyst = groups.get(key) || new Map();
+          perAnalyst.set(r.analista, (perAnalyst.get(r.analista)||0)+1);
+          groups.set(key, perAnalyst);
+        }
+        const chips=[];
+        [...groups.entries()].sort((a,b)=> a[0] < b[0] ? 1 : -1).slice(0,6).forEach(([k, m])=>{
+          const arr=[...m.entries()].sort((a,b)=>b[1]-a[1]);
+          if(arr.length) chips.push(`<span class="chip"><b>${k}:</b> ${arr[0][0]} (${arr[0][1]})</span>`);
+        });
+        return chips.join('');
+      }
+      $('#chipsPeriod').innerHTML = topBy('day')+topBy('week')+topBy('month');
+
+      // Outliers: pico e vale por dia
+      const dayCounts = byDay.map(([d,n])=>({d,newN:n})).sort((a,b)=>a.d.localeCompare(b.d));
+      if(dayCounts.length){
+        const max = dayCounts.reduce((p,c)=> c.newN>p.newN? c:p, dayCounts[0]);
+        const min = dayCounts.reduce((p,c)=> c.newN<p.newN? c:p, dayCounts[0]);
+        $('#chipsOutliers').innerHTML = `
+          <span class="chip">Pico: <b>${max.d}</b> (${fmt(max.newN)})</span>
+          <span class="chip">Vale: <b>${min.d}</b> (${fmt(min.newN)})</span>`;
+      } else {
+        $('#chipsOutliers').innerHTML = '<span class="chip">Sem dados suficientes</span>';
+      }
+
+      // Gráficos
+      const cfg = (labels, data) => ({
+        type:'bar', data:{ labels, datasets:[{ label:'Chamados', data } ] }, options:{
+          responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{x:{grid:{color:'rgba(255,255,255,.06)'}}, y:{grid:{color:'rgba(255,255,255,.06)'}}}
+        }});
+
+      const byF = byForum.slice(0,12); // top 12
+      bindChart('chartByForum', cfg(byF.map(x=>x[0]), byF.map(x=>x[1])));
+      const byA = byAnalyst.slice(0,12);
+      bindChart('chartByAnalyst', cfg(byA.map(x=>x[0]), byA.map(x=>x[1])));
+      const byH = [...Array(24)].map((_,h)=>[h,0]);
+      for(const [h,n] of byHour) byH[h][1]=n;
+      bindChart('chartByHour', cfg(byH.map(x=>String(x[0]).padStart(2,'0')+':00'), byH.map(x=>x[1])));
+    }
+
+    function bindChart(id, config){
+      const ctx = document.getElementById(id);
+      charts[id]?.destroy?.();
+      charts[id] = new Chart(ctx, config);
+    }
+
+    function loadDataFromText(txt){
+      RAW = parseTable(txt);
+      DATA = RAW;
+      refreshFilters();
+      render();
+    }
+
+    function render(){
+      const rows = DATA = filterData();
+      renderKPIs(rows);
+      renderTable(rows);
+    }
+
+    // Eventos
+    $('#file').addEventListener('change', async (e)=>{
+      const file = e.target.files[0]; if(!file) return;
+      const txt = await file.text();
+      loadDataFromText(txt);
+    });
+    $('#btnPaste').addEventListener('click', async ()=>{
+      const txt = await navigator.clipboard.readText();
+      if(!txt) return alert('Nada para colar na área de transferência.');
+      loadDataFromText(txt);
+    });
+    $('#btnSample').addEventListener('click', ()=>{
+      // Exemplo mínimo (pode colar do PDF exportado para CSV/TSV)
+      const sample = `CHAMADO\tFORUM\tANALISTA\tSTATUS\tTRATATIVA\tDATA/HORA CRIAÇÃO\tANOTAÇÕES\tREVISÃO LÍDER\n`+
+      `66663835\tADOLFO PINHEIRO\tKAUAN\tFECHADO\tRESOLVIDO\t08/10 - 15:25\t\tREVISADO\n`+
+      `66647005\tHOME OFFICE\tCAUA\tESCALONADO\tSOFTPLAN\t08/10 - 13:33\t\tREVISADO\n`+
+      `66647077\tADOLFO PINHEIRO\tFELLIPE HORVAT\tFECHADO\tRESOLVIDO\t08/10 - 13:46\t\tREVISADO\n`+
+      `66615812\tADOLFO PINHEIRO\tKAUAN\tFECHADO\tRESOLVIDO\t08/10 - 10:27\t\tREVISADO`;
+      loadDataFromText(sample);
+    });
+
+    for(const id of ['forumFilter','analystFilter','statusFilter','from','to']){
+      document.getElementById(id).addEventListener('change', render);
+    }
+    $('#q').addEventListener('input', render);
+
+    // Hotkeys
+    window.addEventListener('keydown', (e)=>{
+      if(e.key==='/' && document.activeElement!==$('#q')){ e.preventDefault(); $('#q').focus(); }
+      if(e.key==='Escape'){ $('#q').value=''; $('#forumFilter').value=''; $('#analystFilter').value=''; $('#statusFilter').value=''; $('#from').value=''; $('#to').value=''; render(); }
+      if(e.key.toLowerCase()==='i'){ $('#file').click(); }
+    });
+
+    // Export CSV
+    $('#btnExport').addEventListener('click', ()=>{
+      const rows = [['CHAMADO','FORUM','ANALISTA','STATUS','TRATATIVA','DATA/HORA CRIAÇÃO','ANOTAÇÕES','REVISÃO LÍDER'], ...DATA.map(r=>[
+        r.chamado,r.forum,r.analista,r.status,r.tratativa, r.quando? r.quando.toLocaleString('pt-BR'): r.quandoRaw, r.anot, r.revisao
+      ])];
+      const csv = rows.map(r=>r.map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'chamados_export.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  </script>
+</body>
+</html>
